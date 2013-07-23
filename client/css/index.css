@@ -1,0 +1,19 @@
+#map {
+   white-space: pre;
+   font-family:monospace;
+   font-size:250%;
+   color:black;
+}
+
+.tree {
+   color:LimeGreen;
+}
+.rock {
+   color:DarkSlateGray;
+}
+.grass {
+   color:LightGreen;
+}
+.dirt {
+   color:Wheat;
+}
