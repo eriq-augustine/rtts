@@ -2,6 +2,10 @@ require 'em-websocket'
 require 'json'
 require 'set'
 
+require './util.rb'
+
+GAME_TICK_TIME_MS = 10
+
 # Note ws.signature is enough to uniquely identify the connection.
 class WebSocketServer
    def initialize(host, port)
@@ -9,6 +13,20 @@ class WebSocketServer
       @port = port
 
       @sockets = {}
+
+      # For now, don't queue the player just hold a single waiting player.
+      @waitingPlayer = nil
+
+      # {gameId => game}
+      @activeGames = {}
+
+      # {playerId => gameId}
+      @playerGames = {}
+
+      # Tick all of the games at the same time.
+      timerCallback(GAME_TICK_TIME_MS / 1000, lambda{
+         tickAll()
+      })
 
       # Heads-up: This call blocks until the EM dies.
       EventMachine::WebSocket.start(:host => host, :port => port){|ws|
@@ -30,10 +48,14 @@ class WebSocketServer
       }
    end
 
-   def sendMessage(socketSig, message)
-      # TEST
-      puts "Sending Message: #{message}."
+   def tickAll()
+      # HACK(eriq): Not thread safe.
+      @activeGames.each_value{|game|
+         game.tick();
+      }
+   end
 
+   def sendMessage(socketSig, message)
       if (!@sockets[socketSig])
          puts "Closed socket is being referenced"
       else
@@ -44,13 +66,32 @@ class WebSocketServer
    def onOpen(socket, socketSig)
       @sockets[socketSig] = socket
 
-      # TODO(eriq): on open
-      puts "Open: #{socketSig}."
+      if (@waitingPlayer != nil)
+         newGame = Game.new(@waitingPlayer, socketSig)
+         @activeGames[newGame.id] = newGame
+
+         @playerGames[@waitingPlayer] = newGame.id
+         @playerGames[socketSig] = newGame.id
+
+         @waitingPlayer = nil
+      else
+         @waitingPlayer = socketSig
+      end
    end
 
    def onClose(socketSig)
-      # TODO(eriq): on close
-      puts "Close: #{socketSig}."
+      if (@waitingPlayer == socketSig)
+         @waitingPlayer = nil
+      end
+
+      @sockets.delete(socketSig)
+
+      # Close up an active games
+      if (@playerGames.has_key?(socketSig))
+         closedGame = @activeGames.delete(@playerGames[socketSig])
+         @playerGames.delete(closedGame.players[0])
+         @playerGames.delete(closedGame.players[1])
+      end
    end
 
    def onMessage(socketSig, message)
