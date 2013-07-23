@@ -31,9 +31,6 @@ class WebSocketServer
    end
 
    def sendMessage(socketSig, message)
-      # TEST
-      puts "Sending Message: #{message}."
-
       if (!@sockets[socketSig])
          puts "Closed socket is being referenced"
       else
