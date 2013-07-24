@@ -81,7 +81,6 @@ var handle_navigation_input = function(eventObject) {
    var right = 39;
    var down = 40;
    eventObject.preventDefault();
-   Log.debug(eventObject.keyCode);
 
    switch (eventObject.keyCode) {
       case left:
