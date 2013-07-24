@@ -1,74 +1,3 @@
-var game = {
-   player: {
-      units: [],
-      currentSelection: []
-   },
-   currentMap: {}
-};
-
-var render_elem = function (element, surrounding_elements, is_border) {
-   if (!is_border) {
-      var found = false;
-      for (var i = 0; i < surrounding_elements.length; i++) {
-         if (surrounding_elements[i] != element)
-            found = true;
-      }
-      if (!found)
-         return " ";
-   }
-   switch (element) {
-      case "mailman":
-         return "<span class='mailman'>M</span>";
-      case "rock":
-         return "<span class='rock'>r</span>";
-      case "tree":
-         return "<span class='tree'>t</span>";
-      case "grass":
-         return "<span class='grass'>g</span>";
-      case "dirt":
-         return "<span class='dirt'>d</span>";
-      default:
-         return "X";
-   }
-};
-
-var surrounding_elems = function(x, y, json) {
-   var width = json["size"]["x"];
-   var height = json["size"]["y"];
-   var elems = [];
-   if (x > 0) {
-      elems.push(json["elements"][x - 1 + y*width]);
-      if (y > 0) elems.push(json["elements"][x - 1 + (y - 1)*width]);
-      if (y < height - 1) elems.push(json["elements"][x - 1 + (y + 1)*width]);
-   }
-   if (x < width - 1) {
-      elems.push(json["elements"][x + 1 + y*width])
-      if (y > 0) elems.push(json["elements"][x + 1 + (y - 1)*width]);
-      if (y < height - 1) elems.push(json["elements"][x + 1 + (y + 1)*width]);
-   }
-   if (y > 0)          elems.push(json["elements"][x + (y - 1)*width])
-   if (y < height - 1) elems.push(json["elements"][x + (y + 1)*width])
-   return elems;
-};
-
-var render_map = function(map) {
-   var mapDiv = $("#map")[0];
-   var width = map.size.x;
-   var height = map.size.y;
-   var html = "";
-   var is_border = function (x, y) {
-      return x == 0 || y == 0 || x == width - 1 || y == height - 1;
-   };
-
-   for (var y = 0; y < height; y++) {
-      for (var x = 0; x < width; x++) {
-         var elem = map.elements[x + y*width];
-         html += render_elem(elem, surrounding_elems(x, y, map), is_border(x, y));
-      }
-      html += "\n";
-   }
-   mapDiv.innerHTML = html;
-};
 
 var remove_units_from_current_map = function(units) {
    for (var i = 0; i < units.length; i++) {
@@ -191,6 +120,10 @@ var handle_terminal_input = function() {
 };
 
 var main = function() {
+   game.player = {
+      units: [],
+      currentSelection: []
+   }
    game.socket = new Socket();
    game.originalMap = mapJSON;
    game.currentMap = cloneMap(mapJSON);
