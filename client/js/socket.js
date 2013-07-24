@@ -20,14 +20,11 @@ Socket.prototype.send = function(message) {
 Socket.prototype.onMessage = function(messageEvent) {
    var message = messageEvent.data;
 
-   // TEST
    Log.debug("on message");
    Log.debug(message);
 
    switch (message.type) {
-      case 'echo':
-         break;
-      case 'moveUnits':
+      case Message.TYPE_MOVE:
          // newPositions is an array that contains a list of objects, each
          // containing the |id| of the unit and |x| and |y| of the new position.
          // e.g.
