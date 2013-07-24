@@ -11,21 +11,34 @@ function Socket() {
    this.ws.onerror = this.onError.bind(this);
 }
 
-Socket.prototype.onMessage = function(messageEvent) {
-   // TEST
-   console.log("on message");
-   console.log(messageEvent.data);
+Socket.prototype.send = function(message) {
+   Log.debug("sending message");
+   Log.debug(message);
+   this.ws.send(message);
+};
 
-   var message = null;
-   try {
-      message = JSON.parse(messageEvent.data);
-   } catch (ex) {
-      Log.error('Server message does not parse.');
-      return false;
-   }
+Socket.prototype.onMessage = function(messageEvent) {
+   var message = messageEvent.data;
+
+   // TEST
+   Log.debug("on message");
+   Log.debug(message);
 
    switch (message.type) {
       case 'echo':
+         break;
+      case 'moveUnits':
+         // newPositions is an array that contains a list of objects, each
+         // containing the |id| of the unit and |x| and |y| of the new position.
+         // e.g.
+         // newPositions [
+         //    {
+         //       id: "micky",
+         //       x: 3,
+         //       y: 3
+         //    }
+         // ]
+         update_units_positions(message.newPositions);
          break;
       default:
          // Note: There are message types that are known, but just not expected from the server.

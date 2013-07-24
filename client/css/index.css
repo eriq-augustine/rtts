@@ -1,8 +1,12 @@
 #map {
    white-space: pre;
    font-family:monospace;
-   font-size:50%;
+   font-size:250%;
    color:black;
+}
+
+.mailman {
+   color:Brown;
 }
 
 .tree {
