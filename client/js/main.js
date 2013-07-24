@@ -143,11 +143,11 @@ var handle_terminal_input = function() {
       if (game.player.currentSelection.length == 0) {
          Log.debug("Must make a selection before moving.");
       } else if (splitCommand.length < 3) {
-         Log.debug("Usage: move <dx> <dy>");
+         Log.debug("Usage: move <destx> <desty>");
       } else {
-         var dx = parseInt(splitCommand[1]);
-         var dy = parseInt(splitCommand[2]);
-         game.socket.send(make_move_message(dx, dy, game.player.currentSelection));
+         var destx = parseInt(splitCommand[1]);
+         var desty = parseInt(splitCommand[2]);
+         game.socket.send(make_move_message(destx, desty, game.player.currentSelection));
       }
    } else {
    }

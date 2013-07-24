@@ -1,0 +1,25 @@
+Client -> Server Messages:
+Move request message:
+{
+   type: "move",
+   destx: destinationX, // |destx| and |desty| represent the desired destination for the units.
+   desty: destinationY,
+   unitIDs: unitIDs     // List of units to move.
+}
+
+Server -> Client Messages:
+MoveUnits Message:
+{
+   type: "moveUnits",
+   newPositions: []
+}
+newPositions is an array that contains a list of objects, each
+containing the |id| of the unit and |x| and |y| of the new position.
+e.g.
+newPositions [
+   {
+      id: "micky",
+      x: 3,
+      y: 3
+   }
+]
