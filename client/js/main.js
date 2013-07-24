@@ -74,6 +74,37 @@ var add_new_units = function(units) {
    add_units_to_current_map(units);
 };
 
+var handle_navigation_input = function(eventObject) {
+   var esc = 27;
+   var left = 37;
+   var up = 38;
+   var right = 39;
+   var down = 40;
+   eventObject.preventDefault();
+   Log.debug(eventObject.keyCode);
+
+   switch (eventObject.keyCode) {
+      case left:
+         move_screen_by(-1, 0);
+         break;
+      case right:
+         move_screen_by(1, 0);
+         break;
+      case up:
+         move_screen_by(0, -1);
+         break;
+      case down:
+         move_screen_by(0, 1);
+         break;
+      case esc:
+         game.navigationMode = false;
+         return;
+      default:
+         return;
+   }
+   render_map(game.currentMap);
+};
+
 var handle_terminal_input = function() {
    var splitCommand = $("#terminal").val().split(" ");
    if (splitCommand.length < 1) return;
@@ -114,6 +145,8 @@ var handle_terminal_input = function() {
          var desty = parseInt(splitCommand[2]);
          game.socket.send(make_move_request_message(destx, desty, game.player.currentSelection));
       }
+   } else if (command == "nav") {
+      game.navigationMode = true;
    } else {
    }
    $("#terminal").val("");
@@ -129,7 +162,10 @@ var main = function() {
    game.currentMap = cloneMap(mapJSON);
 
    $("#terminal").keydown(function (eventObject) {
-      if (eventObject.keyCode == 13) {
+      if (game.navigationMode) {
+         handle_navigation_input(eventObject);
+      }
+      else if (eventObject.keyCode == 13) {
          handle_terminal_input();
       }
    });

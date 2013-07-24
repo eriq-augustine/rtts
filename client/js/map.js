@@ -1,7 +1,7 @@
 var game = {
    screen: {
-      x: 2,
-      y: 2,
+      x: 0,
+      y: 0,
       w: 50,
       h: 19,
    }
@@ -75,6 +75,15 @@ var render_map = function(map) {
 };
 
 var move_screen_by = function(dx, dy) {
+   // Inclusive clamp.
+   var clamp = function(val, low, hi) {
+      if (val < low) return low;
+      if (val > hi)  return hi;
+      else           return val;
+   };
    game.screen.x += dx;
    game.screen.y += dy;
+
+   game.screen.x = clamp(game.screen.x, 0, game.currentMap.size.x - game.screen.w - 1);
+   game.screen.y = clamp(game.screen.y, 0, game.currentMap.size.y - game.screen.h - 1);
 };
