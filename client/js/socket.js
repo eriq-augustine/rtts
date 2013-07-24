@@ -20,21 +20,12 @@ Socket.prototype.send = function(message) {
 Socket.prototype.onMessage = function(messageEvent) {
    var message = messageEvent.data;
 
-   Log.debug("on message");
-   Log.debug(message);
-
    switch (message.type) {
-      case Message.TYPE_MOVE:
-         // newPositions is an array that contains a list of objects, each
-         // containing the |id| of the unit and |x| and |y| of the new position.
-         // e.g.
-         // newPositions [
-         //    {
-         //       id: "micky",
-         //       x: 3,
-         //       y: 3
-         //    }
-         // ]
+      case Message.TYPE_NEW_UNITS:
+         add_new_units(message.newUnits);
+         break;
+      case Message.TYPE_MOVE_UNITS:
+         Log.debug(message);
          update_units_positions(message.newPositions);
          break;
       default:

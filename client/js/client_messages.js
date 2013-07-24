@@ -1,12 +1,15 @@
+var messageIncrementer = 0;
 var Message = {};
-Message.TYPE_MOVE = 0;
-Message.NUM_TYPES = 1;
+Message.TYPE_MOVE_REQUEST = messageIncrementer++;
+Message.TYPE_MOVE_UNITS   = messageIncrementer++;
+Message.TYPE_NEW_UNITS    = messageIncrementer++;
+Message.NUM_TYPES         = messageIncrementer++;
 
-var make_move_message = function(destx, desty, unitIDs) {
+var make_move_request_message = function(destx, desty, unitIDs) {
    return {
-      destx: destx, // |destx| and |desty| represent the desired destination for the units.
+      destx: destx,
       desty: desty,
-      unitIDs: unitIDs, // units is a list of unique ids
-      type: Message.TYPE_MOVE
+      unitIDs: unitIDs,
+      type: Message.TYPE_MOVE_REQUEST
    };
 };
