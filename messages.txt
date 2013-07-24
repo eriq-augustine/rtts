@@ -16,7 +16,7 @@ MoveUnits Message:
 newPositions is an array that contains a list of objects, each
 containing the |id| of the unit and |x| and |y| of the new position.
 e.g.
-newPositions [
+newPositions: [
    {
       id: "micky",
       x: 3,
