@@ -15,6 +15,15 @@ class Game
       @board = Board.new(DEFAULT_BOARD_HEIGHT, DEFAULT_BOARD_WIDTH)
 
       @players = [player1Id, player2Id]
+
+      # {id => unit}
+      @units = {}
+
+      # {id => {:lastMoved => int, :destination => {:row => int, :col => int}, :path => [{:row => int, :col => int}, ...]}}
+      @movingUnits = {}
+
+      # {id => {:lastAttack => int, :target => id}}
+      @attackingUnits = {}
    end
 
    # Main game advance
@@ -22,6 +31,14 @@ class Game
    end
 
    # TODO(eriq): This will have to pathfind to the target.
-   def moveUnit(startRow, startCol, endRow, endCol)
+   def moveUnits(playerId, ids, targetRow, targetCol)
+      ids.each{|unitId|
+         if (@units.has_key?(unitId) && playerId == @units[unitId].id)
+            moveUnit(unitId, targetRow, targetCol)
+         end
+      }
+   end
+
+   def moveUnit(id, targetRow, targetCol)
    end
 end

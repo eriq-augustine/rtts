@@ -23,6 +23,10 @@ class Board
       @board[endRow][endCol] = @board[startRow][startCol]
    end
 
+   def occupied?(row, col)
+      return @board[row][col] != nil
+   end
+
    def to_s
       @board.each{|row|
          print '|'
