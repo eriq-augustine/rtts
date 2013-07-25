@@ -23,6 +23,10 @@ def timerCallback(interval, callbackLambda)
    return true
 end
 
+def manhattanDistance(x, y)
+   return (x[:row] - y[:row]).abs() + (x[:col] - y[:col]).abs()
+end
+
 # |start| and |dest| should be {:row => int, :col => int}.
 def aStar(board, start, dest)
    visited = Set.new()
@@ -98,7 +102,7 @@ end
 #  (This must never over estimate).
 # Just use Manhattan distance.
 def aStarHeuristic(x, dest)
-   return (x[:row] - dest[:row]).abs() + (x[:col] - dest[:col]).abs()
+   return manhattanDistance(x, dest)
 end
 
 def aStarReconstruct(reverseTraversals, current)

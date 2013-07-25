@@ -27,6 +27,11 @@ class Board
       return @board[row][col] != nil
    end
 
+   def inBounds?(row, col)
+      return row >= 0 && row < @height &&
+             col >= 0 && col < @width
+   end
+
    def to_s
       @board.each{|row|
          print '|'
