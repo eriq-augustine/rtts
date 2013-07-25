@@ -31,11 +31,12 @@ class Game
    end
 
    # Main game advance
-   def tick()
+   def tick(moveCallback)
       @gameTime += 1
 
-      if (updateMovements())
-         # TODO(eriq): Send an update back to the client.
+      moves = updateMovements()
+      if (!moves.empty?)
+         moveCallback.call(moves)
       end
    end
 
@@ -45,7 +46,7 @@ class Game
    #  In this case, the entire path should be rebuilt.
    def updateMovements()
       toRemove = []
-      moved = false
+      moves = []
 
       @movingUnits.each_pair{|id, moveInfo|
          unit = @units[id]
@@ -67,14 +68,16 @@ class Game
             toRemove << id
          end
 
-         moved = true
+         moves << {'id' => unit[:unit].id,
+                   'x' => target[:row],
+                   'y' => target[:col]}
       }
 
       toRemove.each{|id|
          @movingUnits.delete(id)
       }
 
-      return moved
+      return moves
    end
 
    def moveUnits(playerId, ids, targetRow, targetCol)

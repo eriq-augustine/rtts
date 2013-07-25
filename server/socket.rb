@@ -26,33 +26,53 @@ class WebSocketServer
 
       # Tick all of the games at the same time.
       timerCallback(GAME_TICK_TIME_MS / 1000.0, lambda{
-         tickAll()
+         begin
+            tickAll()
+         rescue Exception => e
+            puts e.message()
+            puts e.backtrace.join("\n")
+         end
       })
 
-      # Heads-up: This call blocks until the EM dies.
-      EventMachine::WebSocket.start(:host => host, :port => port){|ws|
-         ws.onopen{
-            onOpen(ws, ws.signature)
-         }
+      begin
+         # Heads-up: This call blocks until the EM dies.
+         EventMachine::WebSocket.start(:host => host, :port => port){|ws|
+            ws.onopen{
+               onOpen(ws, ws.signature)
+            }
 
-         ws.onmessage{|message|
-            onMessage(ws.signature, message)
-         }
+            ws.onmessage{|message|
+               onMessage(ws.signature, message)
+            }
 
-         ws.onclose{
-            onClose(ws.signature)
-         }
+            ws.onclose{
+               onClose(ws.signature)
+            }
 
-         ws.onerror{|error|
-            onError(ws.signature, error)
+            ws.onerror{|error|
+               onError(ws.signature, error)
+            }
          }
-      }
+      rescue Exception => e
+         puts e.message()
+         puts e.backtrace.join("\n")
+      end
    end
 
    def tickAll()
       # HACK(eriq): Not thread safe.
-      @activeGames.each_value{|game|
-         game.tick();
+      @activeGames.each_pair{|id, game|
+         game.tick(lambda{|moves|
+            moveUpdate(id, moves)
+         })
+      }
+   end
+
+   def moveUpdate(gameId, moves)
+      message = JSON.generate({'type' => MESSAGE_TYPE_MOVE_UNITS,
+                               'newPositions' => moves})
+      @activeGames[gameId].players.each{|player|
+         sendMessage(player, message)
       }
    end
 
