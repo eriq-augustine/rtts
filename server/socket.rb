@@ -2,7 +2,8 @@ require 'em-websocket'
 require 'json'
 require 'set'
 
-require './util.rb'
+require './util'
+require './message'
 
 GAME_TICK_TIME_MS = 10
 
@@ -24,34 +25,54 @@ class WebSocketServer
       @playerGames = {}
 
       # Tick all of the games at the same time.
-      timerCallback(GAME_TICK_TIME_MS / 1000, lambda{
-         tickAll()
+      timerCallback(GAME_TICK_TIME_MS / 1000.0, lambda{
+         begin
+            tickAll()
+         rescue Exception => e
+            puts e.message()
+            puts e.backtrace.join("\n")
+         end
       })
 
-      # Heads-up: This call blocks until the EM dies.
-      EventMachine::WebSocket.start(:host => host, :port => port){|ws|
-         ws.onopen{
-            onOpen(ws, ws.signature)
-         }
+      begin
+         # Heads-up: This call blocks until the EM dies.
+         EventMachine::WebSocket.start(:host => host, :port => port){|ws|
+            ws.onopen{
+               onOpen(ws, ws.signature)
+            }
 
-         ws.onmessage{|message|
-            onMessage(ws.signature, message)
-         }
+            ws.onmessage{|message|
+               onMessage(ws.signature, message)
+            }
 
-         ws.onclose{
-            onClose(ws.signature)
-         }
+            ws.onclose{
+               onClose(ws.signature)
+            }
 
-         ws.onerror{|error|
-            onError(ws.signature, error)
+            ws.onerror{|error|
+               onError(ws.signature, error)
+            }
          }
-      }
+      rescue Exception => e
+         puts e.message()
+         puts e.backtrace.join("\n")
+      end
    end
 
    def tickAll()
       # HACK(eriq): Not thread safe.
-      @activeGames.each_value{|game|
-         game.tick();
+      @activeGames.each_pair{|id, game|
+         game.tick(lambda{|moves|
+            moveUpdate(id, moves)
+         })
+      }
+   end
+
+   def moveUpdate(gameId, moves)
+      message = JSON.generate({'type' => MESSAGE_TYPE_MOVE_UNITS,
+                               'newPositions' => moves})
+      @activeGames[gameId].players.each{|player|
+         sendMessage(player, message)
       }
    end
 
@@ -97,10 +118,15 @@ class WebSocketServer
    def onMessage(socketSig, message)
       begin
          obj = JSON.parse(message)
+         game = @activeGames[@playerGames[socketSig]]
 
-         # TODO(eriq): Parse message
-         sendMessage(socketSig, JSON.generate({'type' => 'echo',
-                                               'msg' => message}))
+         case obj['type']
+         when MESSAGE_TYPE_MOVE_REQUEST
+            game.moveUnits(socketSig, obj['unitIDs'],
+                           obj['destx'], obj['desty'])
+         else
+            puts "ERROR: Unknown message type: #{obj['type']}."
+         end
       rescue JSON::ParserError => e
          puts e.message()
          puts e.backtrace.join("\n")
@@ -109,5 +135,6 @@ class WebSocketServer
 
    def onError(socketSig, error)
       puts "Socket error: #{error}"
+      puts error.backtrace.join("\n")
    end
 end

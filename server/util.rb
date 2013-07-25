@@ -23,6 +23,10 @@ def timerCallback(interval, callbackLambda)
    return true
 end
 
+def manhattanDistance(x, y)
+   return (x[:row] - y[:row]).abs() + (x[:col] - y[:col]).abs()
+end
+
 # |start| and |dest| should be {:row => int, :col => int}.
 def aStar(board, start, dest)
    visited = Set.new()
@@ -54,7 +58,7 @@ def aStar(board, start, dest)
       neighbors.each{|neighbor|
          # Note(eriq): All adjacenet distances are currently 1.
          newGScore = gScore[current] + 1
-         if (visited.include?(neighbor) && newGScore > gScore[neighbor]
+         if (visited.include?(neighbor) && newGScore > gScore[neighbor])
             # Ignore, already have a better path to this node.
             next
          end
@@ -86,8 +90,8 @@ def getNeighbors(board, node)
 
       if (newRow >= 0 && newRow < board.height &&
           newCol >= 0 && newCol < board.width &&
-          !board.occupied(newRow, newCol))
-         neightbors << {:row => newRow, :col => newCol}
+          !board.occupied?(newRow, newCol))
+         neighbors << {:row => newRow, :col => newCol}
       end
    }
 
@@ -98,12 +102,14 @@ end
 #  (This must never over estimate).
 # Just use Manhattan distance.
 def aStarHeuristic(x, dest)
-   return (x[:row] - dest[:row]).abs() + (x[:col] - dest[:col]).abs()
+   return manhattanDistance(x, dest)
 end
 
 def aStarReconstruct(reverseTraversals, current)
    if (reverseTraversals.has_key?(current))
-      return aStarReconstruct(reverseTraversals, reverseTraversals[current]) + current
+      path = aStarReconstruct(reverseTraversals, reverseTraversals[current])
+      path << current
+      return path
    else
       return [current]
    end

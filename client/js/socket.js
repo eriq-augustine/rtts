@@ -18,7 +18,13 @@ Socket.prototype.send = function(message) {
 };
 
 Socket.prototype.onMessage = function(messageEvent) {
-   var message = messageEvent.data;
+   var message = null;
+   try {
+      message = JSON.parse(messageEvent.data);
+   } catch (ex) {
+      error('Server message does not parse.');
+      return;
+   }
 
    switch (message.type) {
       case Message.TYPE_NEW_UNITS:

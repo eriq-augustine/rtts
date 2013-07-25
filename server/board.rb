@@ -21,10 +21,16 @@ class Board
       end
 
       @board[endRow][endCol] = @board[startRow][startCol]
+      @board[startRow][startCol] = nil
    end
 
    def occupied?(row, col)
       return @board[row][col] != nil
+   end
+
+   def inBounds?(row, col)
+      return row >= 0 && row < @height &&
+             col >= 0 && col < @width
    end
 
    def to_s
