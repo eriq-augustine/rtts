@@ -3,6 +3,14 @@
    font-family:monospace;
    font-size:250%;
    color:black;
+   width:71%;
+   float: left;
+}
+
+#mini-map {
+   font-size:25%;
+   width:29%;
+   float: left;
 }
 
 .mailman {
