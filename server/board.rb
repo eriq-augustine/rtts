@@ -21,6 +21,7 @@ class Board
       end
 
       @board[endRow][endCol] = @board[startRow][startCol]
+      @board[startRow][startCol] = nil
    end
 
    def occupied?(row, col)

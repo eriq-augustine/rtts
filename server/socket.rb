@@ -2,7 +2,8 @@ require 'em-websocket'
 require 'json'
 require 'set'
 
-require './util.rb'
+require './util'
+require './message'
 
 GAME_TICK_TIME_MS = 10
 
@@ -24,7 +25,7 @@ class WebSocketServer
       @playerGames = {}
 
       # Tick all of the games at the same time.
-      timerCallback(GAME_TICK_TIME_MS / 1000, lambda{
+      timerCallback(GAME_TICK_TIME_MS / 1000.0, lambda{
          tickAll()
       })
 
@@ -97,10 +98,15 @@ class WebSocketServer
    def onMessage(socketSig, message)
       begin
          obj = JSON.parse(message)
+         game = @activeGames[@playerGames[socketSig]]
 
-         # TODO(eriq): Parse message
-         sendMessage(socketSig, JSON.generate({'type' => 'echo',
-                                               'msg' => message}))
+         case obj['type']
+         when MESSAGE_TYPE_MOVE_REQUEST
+            game.moveUnits(socketSig, obj['unitIDs'],
+                           obj['destx'], obj['desty'])
+         else
+            puts "ERROR: Unknown message type: #{obj['type']}."
+         end
       rescue JSON::ParserError => e
          puts e.message()
          puts e.backtrace.join("\n")
@@ -109,5 +115,6 @@ class WebSocketServer
 
    def onError(socketSig, error)
       puts "Socket error: #{error}"
+      puts error.backtrace.join("\n")
    end
 end

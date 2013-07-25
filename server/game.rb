@@ -34,7 +34,9 @@ class Game
    def tick()
       @gameTime += 1
 
-      updateMovements()
+      if (updateMovements())
+         # TODO(eriq): Send an update back to the client.
+      end
    end
 
    # TODO(eriq): Paths may have to be recomputed as other units move.
@@ -50,7 +52,7 @@ class Game
          target = moveInfo[:path][0]
 
          if (!unit ||
-             @gameTime - moveInfo[:lastMoved] < unit.moveSpeed ||
+             @gameTime - moveInfo[:lastMoved] < unit[:unit].moveSpeed ||
              @board.occupied?(target[:row], target[:col]))
             next
          end
@@ -59,6 +61,7 @@ class Game
                      target[:row], target[:col])
          unit[:position] = target
          moveInfo[:path].shift()
+         moveInfo[:lastMoved] = @gameTime
 
          if (moveInfo[:path].empty?)
             toRemove << id
@@ -74,10 +77,10 @@ class Game
       return moved
    end
 
-   # TODO(eriq): This will have to pathfind to the target.
    def moveUnits(playerId, ids, targetRow, targetCol)
       ids.each{|unitId|
-         if (@units.has_key?(unitId) && playerId == @units[unitId][:unit].id)
+         if (@units.has_key?(unitId) &&
+             playerId == @units[unitId][:unit].owner)
             moveUnit(unitId, targetRow, targetCol)
          end
       }
@@ -93,10 +96,10 @@ class Game
 
       # Remove any previous movement or atacking orders for this unit.
       @movingUnits.delete(id)
-      @attackingUnits.remove(id)
+      @attackingUnits.delete(id)
 
       target = getTargetLocation(unit[:position][:row], unit[:position][:col],
-                                 row, col)
+                                 targetRow, targetCol)
 
       if (!target)
          return false
@@ -108,11 +111,15 @@ class Game
          return false
       end
 
+      # Remove the unit origin from the path.
+      path.shift()
+
       # Note(eriq): Units do not get to immediatley move,
       #  they must wait the full move duration before actually moving initially.
-      @movingUnits[unit[:unit].id] = {:lastMoved => @gameTime,
-                               :destination => {:row => targetRow, :col => targetCol},
-                               :path = path}
+      @movingUnits[unit[:unit].id] =
+         {:lastMoved => @gameTime,
+          :destination => {:row => targetRow, :col => targetCol},
+          :path => path}
 
       return true
    end
@@ -140,5 +147,10 @@ class Game
 
       # There is nowhere to move :(
       return nil
+   end
+
+   def placeUnitForTesting(unit, row, col)
+      @board.placePieceForTesting(row, col, unit)
+      @units[unit.id] = {:unit => unit, :position => {:row => row, :col => col}}
    end
 end
