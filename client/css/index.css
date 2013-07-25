@@ -7,7 +7,9 @@
    float: left;
 }
 
-#mini-map {
+#miniMap {
+   white-space: pre;
+   font-family:monospace;
    font-size:25%;
    width:29%;
    float: left;

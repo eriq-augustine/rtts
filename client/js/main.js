@@ -102,6 +102,7 @@ var handle_navigation_input = function(eventObject) {
          return;
    }
    render_map(game.currentMap);
+   render_mini_map(game.currentMap);
 };
 
 var handle_terminal_input = function() {
@@ -173,6 +174,7 @@ var main = function() {
    game.socket.onMessage({data: {type: Message.TYPE_MOVE_UNITS, newPositions: [{id: "micky", x: 2, y: 2}]}});
    // Test
    render_map(game.currentMap);
+   render_mini_map(game.currentMap);
 };
 
 window.onload = main;
