@@ -15,6 +15,23 @@
    float: left;
 }
 
+#menu {
+   white-space: pre;
+   float: left;
+}
+
+.menuTitle {
+   font-size:200%;
+}
+
+.submenuTitle {
+   font-size:150%;
+}
+
+.submenuOption {
+   font-size:100%;
+}
+
 .mailman {
    color:Brown;
 }

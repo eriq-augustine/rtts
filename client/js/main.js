@@ -152,6 +152,61 @@ var handle_terminal_input = function() {
    $("#terminal").val("");
 };
 
+var create_menu = function() {
+   game.menu = {
+      title: "COMMANDS",
+      subMenus: [
+            {
+               title: "select",
+               options: [
+                     "all",
+                     "range x1 y1 x2 y2",
+                     "none",
+                  ],
+            },
+            {
+               title: "move",
+               options: [
+                     "destX destY"
+                  ],
+            },
+            {
+               title: "nav",
+               options: [],
+            }
+         ]
+   };
+};
+
+var render_menu = function() {
+   var menu = $("#menu")[0];
+   var html = "";
+   html += "<div class='menuTitle'>"
+   html += game.menu.title;
+   html += "</div>"
+   html += "\n\n";
+   for (var i = 0; i < game.menu.subMenus.length; i++) {
+      var submenu = game.menu.subMenus[i];
+      html += "<div class='submenuTitle'>"
+      html += submenu.title + "\n";
+      html += "</div>"
+      html += "<div class='submenuOption'>"
+      for (var j = 0; j < submenu.options.length; j++) {
+         html += "   |- " + submenu.options[j] + "\n";
+      }
+      html += "</div>"
+   }
+   menu.innerHTML = html
+};
+
+var dynamic_terminal_input = function(eventObject) {
+   eventObject.preventDefault();
+   var terminal = $("#terminal");
+   var chr = String.fromCharCode(eventObject.which);
+   var text = terminal.val() + chr;
+   terminal.val(text);
+}
+
 var main = function() {
    game.player = {
       units: [],
@@ -161,17 +216,27 @@ var main = function() {
    game.originalMap = mapJSON;
    game.currentMap = cloneMap(mapJSON);
 
-   $("#terminal").keydown(function (eventObject) {
+   $("#terminal").on('keydown', function (eventObject) {
       if (game.navigationMode) {
          handle_navigation_input(eventObject);
       }
-      else if (eventObject.keyCode == 13) {
+   }).on('keypress', function(eventObject) {
+      if (game.navigationMode)
+         return;
+      if (eventObject.keyCode == 13) {
          handle_terminal_input();
+      } else {
+         dynamic_terminal_input(eventObject);
       }
    });
+   create_menu();
+   render_menu();
+
    // Test
-   game.socket.onMessage({data: {type: Message.TYPE_NEW_UNITS, newUnits: [{id: "micky", x: 1, y: 1, elementType: "mailman"}]}});
-   game.socket.onMessage({data: {type: Message.TYPE_MOVE_UNITS, newPositions: [{id: "micky", x: 2, y: 2}]}});
+   for (var i = 0; i < 19; i++) {
+      game.socket.onMessage({data: {type: Message.TYPE_NEW_UNITS, newUnits: [{id: i, x: 3*i, y: 2*i, elementType: "mailman"}]}});
+   }
+   game.socket.onMessage({data: {type: Message.TYPE_MOVE_UNITS, newPositions: [{id: 0, x: 2, y: 2}]}});
    // Test
    render_map(game.currentMap);
    render_mini_map(game.currentMap);
