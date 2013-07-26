@@ -9,6 +9,8 @@ class Board
 
       @terrainLayer = Array.new(height)
       # Includes units and obstructions.
+      # TODO(eriq): The object layer should probably be slit into
+      #  units and objects.
       @objectLayer = Array.new(height)
 
       for row in 0...height
@@ -62,6 +64,21 @@ class Board
       @objectLayer[row][col] = piece
    end
 
+   def initMessagePart()
+      part = {
+         'size' => {'x' => @width, 'y' => @height},
+         'elements' => []
+      }
+
+      for row in 0...@height
+         for col in 0...@width
+            part['elements'] << @terrainLayer[row][col].type
+         end
+      end
+
+      return part
+   end
+
    # Returns the board and the units that were placed.
    #  The format for the unit is the same as in Game.
    def self.loadFromFile(fileName, player1Id, player2Id)
@@ -94,8 +111,8 @@ class Board
          owner = unit['owner'] == 0 ? player1Id : player2Id
          newUnit = makeUnit(owner, unit['type'])
          units << {:unit => newUnit,
-                   :position => {:row => unit['x'], :col => unit['y']}}
-         objectLayer[unit['x']][unit['y']] = newUnit
+                   :position => {:row => unit['y'], :col => unit['x']}}
+         objectLayer[unit['y']][unit['x']] = newUnit
       }
 
       newBoard = Board.new(height, width)

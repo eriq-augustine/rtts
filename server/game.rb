@@ -36,6 +36,23 @@ class Game
       @gameTime = 0
    end
 
+   # Get the contents of the init message for this game.
+   def initMessagePart()
+      units = []
+      @units.each_value{|unit|
+         units << {'id' => unit[:unit].id,
+                   'owner' => unit[:unit].owner,
+                   'type' => unit[:unit].type,
+                   'x' => unit[:position][:col],
+                   'y' => unit[:position][:row]}
+      }
+
+      return {
+         'map' => @board.initMessagePart(),
+         'units' => units
+      }
+   end
+
    # Main game advance
    def tick(moveCallback, attackCallback)
       @gameTime += 1

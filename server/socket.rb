@@ -108,6 +108,22 @@ class WebSocketServer
          @playerGames[socketSig] = newGame.id
 
          @waitingPlayer = nil
+
+         # Send the players the init message.
+         messageObj = newGame.initMessagePart()
+         messageObj['type'] = MESSAGE_TYPE_INIT_GAME
+
+         # First player
+         messageObj['playerID'] = newGame.players[0]
+         messageObj['opponentIDs'] = [newGame.players[1]]
+         message = JSON.generate(messageObj)
+         sendMessage(newGame.players[0], message)
+
+         # Second player
+         messageObj['playerID'] = newGame.players[1]
+         messageObj['opponentIDs'] = [newGame.players[0]]
+         message = JSON.generate(messageObj)
+         sendMessage(newGame.players[1], message)
       else
          @waitingPlayer = socketSig
       end
