@@ -62,6 +62,8 @@ class Board
       @objectLayer[row][col] = piece
    end
 
+   # Returns the board and the units that were placed.
+   #  The format for the unit is the same as in Game.
    def self.loadFromFile(fileName, player1Id, player2Id)
       file = File.open(fileName)
       mapObject = JSON.load(file)
@@ -86,9 +88,13 @@ class Board
          terrainLayer[row][col] = Terrain.new(mapObject['elements'][i])
       end
 
+      units = []
+
       mapObject['units'].each{|unit|
          owner = unit['owner'] == 0 ? player1Id : player2Id
          newUnit = makeUnit(owner, unit['type'])
+         units << {:unit => newUnit,
+                   :position => {:row => unit['x'], :col => unit['y']}}
          objectLayer[unit['x']][unit['y']] = newUnit
       }
 
@@ -96,7 +102,7 @@ class Board
       newBoard.setTerrain(terrainLayer)
       newBoard.setObjects(objectLayer)
 
-      return newBoard
+      return newBoard, units
    end
 
    def setTerrain(terrain)

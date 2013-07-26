@@ -14,12 +14,18 @@ class Game
       @id = @@nextGame
       @@nextGame += 1
 
-      @board = Board.new(DEFAULT_BOARD_HEIGHT, DEFAULT_BOARD_WIDTH)
+      @board, initUnits = Board::loadFromFile('../maps/dirtNGrass.json',
+                                             player1Id, player2Id)
 
       @players = [player1Id, player2Id]
 
       # {id => {:unit => unit, :position => {:row => int, :col => int}}}
       @units = {}
+
+      # Place the initial units from the board initialization.
+      initUnits.each{|unit|
+         @units[unit[:unit].id] = unit
+      }
 
       # {id => {:lastMoved => int, :destination => {:row => int, :col => int}, :path => [{:row => int, :col => int}, ...]}}
       @movingUnits = {}
