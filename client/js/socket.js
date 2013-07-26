@@ -22,17 +22,20 @@ Socket.prototype.onMessage = function(messageEvent) {
    try {
       message = JSON.parse(messageEvent.data);
    } catch (ex) {
-      error('Server message does not parse.');
+      Log.error('Server message does not parse.');
       return;
    }
 
    switch (message.type) {
       case Message.TYPE_NEW_UNITS:
          add_new_units(message.newUnits);
+         render_map(game.currentMap);
+         render_mini_map(game.currentMap);
          break;
       case Message.TYPE_MOVE_UNITS:
-         Log.debug(message);
          update_units_positions(message.newPositions);
+         render_map(game.currentMap);
+         render_mini_map(game.currentMap);
          break;
       default:
          // Note: There are message types that are known, but just not expected from the server.
