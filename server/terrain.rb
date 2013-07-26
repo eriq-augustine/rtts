@@ -12,6 +12,6 @@ class Terrain < BoardPiece
 
    def to_s
       # TODO(eriq)
-      return 'T'
+      return @type[0].upcase
    end
 end

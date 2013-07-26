@@ -7,25 +7,29 @@ class Board
       @height = height
       @width = width
 
-      @board = Array.new(height)
+      @terrainLayer = Array.new(height)
+      # Includes units and obstructions.
+      @objectLayer = Array.new(height)
+
       for row in 0...height
-         @board[row] = Array.new(width)
+         @terrainLayer[row] = Array.new(width)
+         @objectLayer[row] = Array.new(width)
       end
    end
 
    def move(startRow, startCol, endRow, endCol)
-      if (!@board[startRow][startCol] ||
-          !@board[startRow][startCol].moveable? ||
-          @board[endRow][endCol])
+      if (!@objectLayer[startRow][startCol] ||
+          !@objectLayer[startRow][startCol].moveable? ||
+          @objectLayer[endRow][endCol])
          return
       end
 
-      @board[endRow][endCol] = @board[startRow][startCol]
-      @board[startRow][startCol] = nil
+      @objectLayer[endRow][endCol] = @objectLayer[startRow][startCol]
+      @objectLayer[startRow][startCol] = nil
    end
 
    def occupied?(row, col)
-      return @board[row][col] != nil
+      return @objectLayer[row][col] != nil
    end
 
    def inBounds?(row, col)
@@ -34,28 +38,72 @@ class Board
    end
 
    def remove(row, col)
-      @board[row][col] = nil
+      @objectLayer[row][col] = nil
    end
 
    def to_s
-      @board.each{|row|
+      for row in 0...@height
          print '|'
-
-         row.each{|col|
-            if (col)
-               print "#{col}|"
+         for col in 0...@width
+            if (@objectLayer[row][col])
+               print "#{@objectLayer[row][col]}"
             else
-               print " |"
+               print "#{@terrainLayer[row][col]}"
             end
-         }
-
+            print '|'
+         end
          puts ''
-      }
+      end
    end
 
    # Note: This should only be used for testing.
    #  Real boards should probably be deserialized from some static source.
    def placePieceForTesting(row, col, piece)
-      @board[row][col] = piece
+      @objectLayer[row][col] = piece
+   end
+
+   def self.loadFromFile(fileName, player1Id, player2Id)
+      file = File.open(fileName)
+      mapObject = JSON.load(file)
+      file.close()
+
+      height = mapObject['size']['y']
+      width = mapObject['size']['x']
+
+      terrainLayer = Array.new(height)
+      # Includes units and obstructions.
+      objectLayer = Array.new(height)
+
+      for row in 0...height
+         terrainLayer[row] = Array.new(width)
+         objectLayer[row] = Array.new(width)
+      end
+
+      for i in 0...mapObject['elements'].length
+         row = i / width
+         col = i - row * width
+
+         terrainLayer[row][col] = Terrain.new(mapObject['elements'][i])
+      end
+
+      mapObject['units'].each{|unit|
+         owner = unit['owner'] == 0 ? player1Id : player2Id
+         newUnit = makeUnit(owner, unit['type'])
+         objectLayer[unit['x']][unit['y']] = newUnit
+      }
+
+      newBoard = Board.new(height, width)
+      newBoard.setTerrain(terrainLayer)
+      newBoard.setObjects(objectLayer)
+
+      return newBoard
+   end
+
+   def setTerrain(terrain)
+      @terrainLayer = terrain
+   end
+
+   def setObjects(objects)
+      @objectLayer = objects
    end
 end
