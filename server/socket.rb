@@ -102,15 +102,6 @@ class WebSocketServer
 
       if (@waitingPlayer != nil)
          newGame = Game.new(@waitingPlayer, socketSig)
-         # TEST(chebert)
-         #newGame.placeUnitForTesting(Unit.new(@waitingPlayer, 100, 100, 10, 1), 4, 4)
-         #sendMessage(@waitingPlayer, JSON.generate({'type' => MESSAGE_TYPE_NEW_UNITS,
-                                                    #'newUnits' => [ { 'id' => 0,
-                                                                      #'elementType' => 'mailman',
-                                                                      #'x' => 4,
-                                                                      #'y' => 4 } ] }))
-         # TEST
-
          @activeGames[newGame.id] = newGame
 
          @playerGames[@waitingPlayer] = newGame.id
