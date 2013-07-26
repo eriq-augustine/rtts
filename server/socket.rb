@@ -62,9 +62,22 @@ class WebSocketServer
    def tickAll()
       # HACK(eriq): Not thread safe.
       @activeGames.each_pair{|id, game|
-         game.tick(lambda{|moves|
-            moveUpdate(id, moves)
-         })
+         game.tick(
+            lambda{|moves|
+                     moveUpdate(id, moves)
+                  },
+            lambda{|unitsHit|
+                     attackUpdate(id, unitsHit)
+                  })
+      }
+   end
+
+   def attackUpdate(gameId, unitsHit)
+      message = JSON.generate({'type' => MESSAGE_TYPE_DAMAGE_UPDATE,
+                               'newHealths' => unitsHit[:newHealths],
+                               'deadUnitIDs' => unitsHit[:deadUnitIDs]})
+      @activeGames[gameId].players.each{|player|
+         sendMessage(player, message)
       }
    end
 
@@ -124,6 +137,10 @@ class WebSocketServer
          when MESSAGE_TYPE_MOVE_REQUEST
             game.moveUnits(socketSig, obj['unitIDs'],
                            obj['destx'], obj['desty'])
+         when MESSAGE_TYPE_MOVE_IN_RANGE_REQUEST
+            # TODO(eriq): Ignored for now.
+         when MESSAGE_TYPE_ATTACK_REQUEST
+            game.attck(socketSig, obj['targetID'], obj['unitIDs'])
          else
             puts "ERROR: Unknown message type: #{obj['type']}."
          end

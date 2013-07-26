@@ -1,10 +1,10 @@
 class Unit < BoardPiece
    @@nextId = 0
 
-   attr_reader :id, :moveSpeed, :attack, :range, :owner
+   attr_reader :id, :moveSpeed, :attack, :attackSpeed, :range, :owner
    attr_accessor :hp
 
-   def initialize(owner, hp, moveSpeed, attack, range)
+   def initialize(owner, hp, moveSpeed, attack, attackSpeed, range)
       super(true)
 
       @id = @@nextId
@@ -15,6 +15,7 @@ class Unit < BoardPiece
       @hp = hp
       @moveSpeed = moveSpeed
       @attack = attack
+      @attackSpeed = attackSpeed
       @range = range
    end
 

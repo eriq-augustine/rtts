@@ -33,6 +33,10 @@ class Board
              col >= 0 && col < @width
    end
 
+   def remove(row, col)
+      @board[row][col] = nil
+   end
+
    def to_s
       @board.each{|row|
          print '|'

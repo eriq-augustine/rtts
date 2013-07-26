@@ -31,8 +31,13 @@ class Game
    end
 
    # Main game advance
-   def tick(moveCallback)
+   def tick(moveCallback, attackCallback)
       @gameTime += 1
+
+      unitsHit = updateAttacks()
+      if (!unitsHit[:deadUnitIDs].empty? || !unitsHit[:newHealths].empty?)
+         attackCallback.call(unitsHit)
+      end
 
       moves = updateMovements()
       if (!moves.empty?)
@@ -52,8 +57,15 @@ class Game
          unit = @units[id]
          target = moveInfo[:path][0]
 
-         if (!unit ||
-             @gameTime - moveInfo[:lastMoved] < unit[:unit].moveSpeed ||
+         # Unit is gone. Killed?
+         if (!unit)
+            toRemove << id
+            next
+         end
+
+         if (@gameTime - moveInfo[:lastMoved] < unit[:unit].moveSpeed ||
+             # TODO(eriq): If the next location for this unit is occupied, just wait.
+             #  If the spot if occupied by a unit that is not moving, the path should probably be recalculated.
              @board.occupied?(target[:row], target[:col]))
             next
          end
@@ -78,6 +90,85 @@ class Game
       }
 
       return moves
+   end
+
+   def updateAttacks()
+      # TODO(eriq): Make sure to move the unit if out of range.
+      toRemove = []
+      # {:deadUnitIDs => [id, ...], :newHealths => [{'id' => id, 'health' => health}, ...]}
+      unitsHit = {:deadUnitIDs => [], :newHealths => {}}
+
+      @attackingUnits.each_pair{|id, attackInfo|
+         unit = @units[id]
+         target = @units[attackInfo[:target]]
+
+         # Someone died.
+         if (!unit || !target)
+            toRemove << id
+            next
+         end
+
+         # The target moved out of range, try moving to the target and attack again.
+         # Note that this check is before the attack speed check.
+         # TODO(eriq): The unit should probably just move in range instead of all the way to the target.
+         if (manhattanDistance(unit[:position], target[:position]) > unit[:unit].range)
+            moveUnit(id, target[:position][:row], target[:position][:col])
+            next
+         end
+
+         if (@gameTime - attackInfo[:lastAttack] < unit[:unit].attackSpeed)
+            next
+         end
+
+         target[:unit].hp -= unit[:unit].attack
+         if (target[:unit].hp <= 0)
+            killUnit(attackInfo[:target])
+            unitsHit[:deadUnitIDs] << attackInfo[:target]
+
+            # Remove the attacker from the attacking list.
+            toRemove << id
+         else
+            unitsHis[:newHealths] << {'id' => [attackInfo[:target]], 'health' => target[:unit].hp}
+         end
+      }
+
+      toRemove.each{|id|
+         @attackingUnits.delete(id)
+      }
+
+      return unitsHit
+   end
+
+   def killUnit(id)
+      unit = @units.delete(id)
+      @attackingUnits.delete(id)
+      @movingUnits.delete(id)
+      @board.remove(unit[:position][:row], unit[:position][:col])
+   end
+
+   def attack(playerId, targetId, unitIds)
+      # Note(eriq): This check disallows friendly fire.
+      if (!@units.has_key?(targetId) || @units[targetId][:unit].owner == playerId)
+         return
+      end
+
+      unitIds.each{|unitId|
+         if (!@units.has_key?(unitId) || @units[unitId][:unit].owner != playerId)
+            next
+         end
+
+         # Remove any previous orders this unit has.
+         @movingUnits.delete(unitId)
+         @attackingUnits.delete(unitId)
+
+         # Range check. If out of range, then just move TO the unit.
+         # TODO(eriq): Move to a better location. Range units will probably want to move to minumum range.
+         if (manhattanDistance(@units[targetId][:position], @units[unitId][:position]) > @units[unitId][:unit].range)
+            moveUnit(unitId, @units[targetId][:position][:row], @units[targetId][:position][:col])
+         else
+            @attackingUnits[unitId[:unit].id] = {:lastAttack => @gameTime, :target => targetId}
+         end
+      }
    end
 
    def moveUnits(playerId, ids, targetRow, targetCol)
