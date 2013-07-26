@@ -1,4 +1,3 @@
-
 var remove_units_from_current_map = function(units) {
    for (var i = 0; i < units.length; i++) {
       var ndx = units[i].x + units[i].y * game.currentMap.size.x;
@@ -143,7 +142,7 @@ var handle_terminal_input = function() {
       } else {
          var destx = parseInt(splitCommand[1]);
          var desty = parseInt(splitCommand[2]);
-         game.socket.send(make_move_request_message(destx, desty, game.player.currentSelection));
+         window.socket.send(make_move_request_message(destx, desty, game.player.currentSelection));
       }
    } else if (command == "nav") {
       game.navigationMode = true;
@@ -212,7 +211,6 @@ var main = function() {
       units: [],
       currentSelection: []
    }
-   game.socket = new Socket();
    game.originalMap = mapJSON;
    game.currentMap = cloneMap(mapJSON);
 
@@ -233,10 +231,12 @@ var main = function() {
    render_menu();
 
    // Test
+   /*
    for (var i = 0; i < 19; i++) {
       game.socket.onMessage({data: {type: Message.TYPE_NEW_UNITS, newUnits: [{id: i, x: 3*i, y: 2*i, elementType: "mailman"}]}});
    }
    game.socket.onMessage({data: {type: Message.TYPE_MOVE_UNITS, newPositions: [{id: 0, x: 2, y: 2}]}});
+   */
    // Test
    render_map(game.currentMap);
    render_mini_map(game.currentMap);
